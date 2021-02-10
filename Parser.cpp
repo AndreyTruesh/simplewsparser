@@ -100,13 +100,11 @@ Parser::Token Parser::lexNewline(std::string &value)
 		case '\n': case '\r':
 			if (c != value[0])
 			{
-				// \r\n or \n\r
-				value.push_back(c);
+				value.push_back(c); // \r\n or \n\r
 			}
 			else
 			{
-				// treat \n \n as two newline, obviously
-				in->unget();
+				in->unget(); // treat \n \n as two newline
 			}
 			return NEWLINE;
 		default:
@@ -146,12 +144,19 @@ Parser::Token Parser::lexIdentifier(std::string &value)
 	}
 }
 
-void Parser::parse(std::istream& i, const std::string& f, unsigned int l)
+void Parser::parse(const std::string& fin)
 {
-	in   = &i;
-	file = f;
+	//in   = &i;
 
-	// prep the look ahead
+/*
+	int tmpin;
+	int fd;
+
+	tmpin = dup(0);
+	fd = open(fin.c_str(), O_RDONLY);
+	dup2(fd, 0);
+	close(fd);
+	in = &std::cin;
 	Token t;
 	std::string value;
 	getNextToken(value);
@@ -166,8 +171,55 @@ void Parser::parse(std::istream& i, const std::string& f, unsigned int l)
 		{
 			parseServer();
 		}
-
 	}
+	dup2(tmpin, 0);
+	close(tmpin); */
+
+	struct s_loc loc;
+	t_serv val1, val2;
+	val1.host = "127.0.0.1";
+	val1.port = 5000;
+	val1.bodySizeLimit = 1048576;
+	val1.root = getcwd(0, 0);
+	val1.error_pages.insert(std::pair<int, std::string>(404, "/custom_404.html"));
+	val1.error_pages.insert(std::pair<int, std::string>(404, "/custom_400.html"));
+	loc.path = "/";
+	loc.root = val1.root;
+	loc.autoindex = false;
+	loc.getAvailable = true;
+	loc.postAvailable = true;
+	loc.headAvailable = true;
+	loc.putAvailable = false;
+	val1.locs.push_back(loc);
+	
+	loc.path = "/test";
+	loc.root = getcwd(0, 0);
+	loc.root += "/tata";
+	loc.autoindex = false;
+	loc.getAvailable = true;
+	loc.postAvailable = true;
+	loc.headAvailable = true;
+	loc.putAvailable = true;
+	val1.locs.push_back(loc);
+	servers.push_back(val1);
+
+
+	val2.host = "127.0.0.2";
+	val2.port = 9911;
+	val2.bodySizeLimit = 1048576;
+	val2.root = getcwd(0, 0);
+	val2.error_pages.insert(std::pair<int, std::string>(404, "/custom_404.html"));
+	val2.error_pages.insert(std::pair<int, std::string>(404, "/custom_400.html"));
+	loc.path = "/";
+	loc.root = val2.root + "/tata";
+	loc.autoindex = false;
+	loc.getAvailable = false;
+	loc.postAvailable = true;
+	loc.getAvailable = true;
+	loc.headAvailable = true;
+	loc.putAvailable = true;
+	val2.locs.push_back(loc);
+	servers.push_back(val2);
 }
 
 

@@ -18,6 +18,9 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <fcntl.h>
+#include <unistd.h>
+#include <map>
 
 class Parser
 {
@@ -25,30 +28,31 @@ class Parser
 		Parser();
 
 		~Parser();
-		void parse(std::istream& in, const std::string& file = "", unsigned int line = 1);
+		void parse(const std::string& file);
 
-		typedef struct s_serv{
-			std::string host;
-			int			port;
-			std::string errorPage;
-			std::string root;
-			std::string serverName;
-			int 		bodySizeLimit;
+	struct s_loc
+	{
+		std::string path; // refactir to locPath?
+		std::string root;
+		std::string fileRequestIsDir;
+		bool autoindex;
+		bool getAvailable;
+		bool postAvailable;
+		bool headAvailable;
+		bool putAvailable;
+	};
 
-			struct s_loc
-			{
-				std::string locPath;
-				std::string root;
-				std::string fileRequestIsDir;
-				bool autoindex;
-				bool getAvailable;
-				bool postAvailable;
-				bool headAvailable;
-				bool putAvailable;
-			};
-		} t_serv;
+	typedef struct s_serv{
+		std::string host;
+		int			port;
+		std::map<int, std::string> error_pages;
+		std::string root;
+		std::string serverName;
+		int 		bodySizeLimit;
+		std::vector<struct s_loc> locs;
+	} t_serv;
 
-		std::vector<t_serv> servers;
+	std::vector<t_serv> servers;
 
 		std::string host;
 		int			port;
