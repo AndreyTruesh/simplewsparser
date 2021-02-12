@@ -234,7 +234,7 @@ void Parser::getRoot()
 	serv.root = value;
 	t = getNextToken(value);
 	if (t != SEMICOLON)
-		error("Er_3");
+		error("Er_3!");
 	std::cout << "root done!" << root << "\n";
 
 }
@@ -250,7 +250,7 @@ void Parser::getHost()
 	serv.host = value;
 	t = getNextToken(value);
 	if (t != SEMICOLON)
-		error("Er_3");
+		error("Er_3!!");
 	std::cout << "host done!\n";
 }
 
@@ -265,14 +265,59 @@ void Parser::getServerName()
 	serv.serverName = value;
 	t = getNextToken(value);
 	if (t != SEMICOLON)
-		error("Er_3");
+		error("Er_3!!!");
 
 	std::cout << "servername done!\n";
 }
 
 void Parser::getErrorPage()
 {
+	std::string value;
+	std::string errorFile;
+	Token t = getNextToken(value);
+	std::vector<int> v;
+	while (t != SEMICOLON) {
+		t = getNextToken(value);
+		if (t == IDENTIFIER)
+		{
+			if (nextToken == SEMICOLON)
+			{
+				errorFile = value;
+				continue ;
+			}
+			int r = validateErrorStr(value);
+			if (r != 1) // TODO: error management!
+				error("Bad error");
+			v.push_back(std::atoi(value.c_str()));
+			std::cout << "hohohaha1" << std::endl;
+		}
+	}
+	for (int i = 0; i < v.size(); i++)
+	{
+		serv.error_pages.insert(std::pair<int, std::string>(v[i], errorFile));
+	}
+	//std::vector<int>::iterator
+}
 
+void Parser::getPageSize()
+{
+	std::string value;
+	Token t = getNextToken(value);
+	int num;
+
+	while (t == WHITESPACE)
+		t = getNextToken(value);
+	if (t != IDENTIFIER)
+		error("Er_2");
+	num = std::atoi(value.c_str());
+	if (value[value.size() - 1] == 'M')
+		num *= 1048576;
+	else if (value[value.size() - 1] == 'K') // or k
+		num *= 1024; // TODO: validate value
+	t = getNextToken(value);
+	if (t != SEMICOLON)
+		error("Er_3!!!");
+	serv.bodySizeLimit = num;
 }
 
 void Parser::parseValues()
@@ -298,6 +343,8 @@ void Parser::parseValues()
 			getErrorPage();
 		else if (value == "server_name")
 			getServerName();
+		else if (value == "page_size")
+			getPageSize();
 	}
 }
 
@@ -323,6 +370,8 @@ void Parser::parseServer()
 	}
 	else
 	{
+		fillRootLoc(); // Fill location roots if empty
+		splitHost();
 		servers.push_back(serv);
 		getNextToken(value);
 	}
@@ -338,7 +387,7 @@ void Parser::getLocRoot()
 	loc.root = value;
 	t = getNextToken(value);
 	if (t != SEMICOLON)
-		error("Er_3");
+		error("No semicolon after root in Location section");
 }
 
 void Parser::getLocAutoindex()
@@ -354,27 +403,50 @@ void Parser::getLocAutoindex()
 	else if (value == "on")
 		loc.autoindex = true;
 	else
-		error("autoindex is off/on not anything else");
+		error("autoindex is off/on; not anything else");
 	t = getNextToken(value);
 	if (t != SEMICOLON)
-		error("Er_3");
+		error("Er_3!!!!!");
 }
 
 void Parser::getLocFileIsDir()
 {
+	std::string value;
+	Token t = getNextToken(value);
+	while (t == WHITESPACE)
+		t = getNextToken(value);
+	if (t != IDENTIFIER)
+		error("Er_2");
+	loc.fileRequestIsDir = value;
+	t = getNextToken(value);
+	if (t != SEMICOLON)
+		error("Er_3!!!");
 
+	std::cout << "file is Dir done!\n";
 }
 
 void Parser::getLocDenyMethod()
 {
-
+	std::string value;
+	Token t = getNextToken(value);
+	while (t == WHITESPACE)
+		t = getNextToken(value);
+	if (t != IDENTIFIER)
+		error("Er_9");
+	if (value == "GET")
+		loc.getAvailable = false;
+	else if (value == "POST")
+		loc.postAvailable = false;
+	else if (value == "HEAD")
+		loc.headAvailable = false;
+	else if (value == "PUT")
+		loc.putAvailable = false;
+	else
+		error("expected deny POST | HEAD | PUT | GET");
+	t = getNextToken(value);
+	if (t != SEMICOLON)
+		error("expected semicolon in Location: deny");
 }
-
-void Parser::getLocReqIsDir()
-{
-
-}
-
 
 void Parser::parseLocValues()
 {
@@ -477,6 +549,33 @@ void Parser::initLoc()
 	loc.path.clear();
 }
 
+int Parser::validateErrorStr(const std::string &str)
+{
+	if (str.length() != 3)
+		return (-1);
+	for (int i = 0; i < str.length(); i++)
+		if (str[i] < '0' || str[i] > '9')
+			return (-2);
+	return (1);
+}
 
+void Parser::fillRootLoc()
+{
+	for (int i = 0; i < serv.locs.size(); i++)
+	{
+		if (serv.locs[i].root.empty())
+			serv.locs[i].root = serv.root; // TODO: refactor root; error management: root is empty
+	}
+}
 
-
+void Parser::splitHost()
+{
+	size_t pos;
+	std::string _host; // ref
+	std::string _port; // TODO: ref
+	pos = serv.host.find(':');
+	_host = serv.host.substr(0, pos); // TODO: error management
+	_port = serv.host.substr(pos + 1, serv.host.size());
+	serv.host = _host;
+	serv.port = std::atoi(_port.c_str());
+}

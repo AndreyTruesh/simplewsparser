@@ -99,14 +99,18 @@ class Parser
 		void 	getHost();
 		void 	getServerName();
 		void 	getErrorPage();
+		void 	getPageSize();
 		void 	getLocRoot();
 		void 	getLocAutoindex();
 		void 	getLocFileIsDir();
 		void 	getLocDenyMethod();
-		void 	getLocReqIsDir();
 		void 	initServ();
 		void 	initLoc();
 		void	error(const std::string& msg);
+
+		int 	validateErrorStr(const std::string &str);
+		void 	fillRootLoc();
+		void 	splitHost();
 };
 
 

@@ -9,6 +9,7 @@
 // ** autoindex
 // ** default file to answer if the request is a directory
 // ** execute CGI based on certain file extension (for example .php)
+// ** make the route able to accept uploaded files and configure where it should be saved
 
 #include <iostream>
 #include <fstream>
@@ -19,6 +20,12 @@ int main()
 	std::ifstream fin(fin_name.c_str());
 	Parser parser;
 	parser.parse(fin_name);
-	std::cout << parser.servers[0].root;
+	std::cout << parser.servers[0].root << std::endl;
+	std::cout << parser.servers[0].locs[1].path << std::endl;
+	std::cout << parser.servers[0].locs[1].root << std::endl;
+	std::cout << parser.servers[0].error_pages.find(404)->second << std::endl;
+	std::cout << parser.servers[0].bodySizeLimit << std::endl;
+	std::cout << parser.servers[0].host << std::endl;
+	std::cout << parser.servers[0].port;
 	return 0;
 }
