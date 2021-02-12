@@ -18,6 +18,7 @@ int main()
 	std::string fin_name = "webserv.conf";
 	std::ifstream fin(fin_name.c_str());
 	Parser parser;
-	parser.parse(fin, fin_name, 1);
+	parser.parse(fin_name);
+	std::cout << parser.servers[0].root;
 	return 0;
 }

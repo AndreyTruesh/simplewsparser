@@ -80,6 +80,9 @@ class Parser
 		Token nextToken;
 		std::string nextValue;
 
+		t_serv serv;
+		struct s_loc loc;
+
 
 
 		Token getNextToken(std::string &value);
@@ -90,11 +93,19 @@ class Parser
 		Token lexComment(std::string &value);
 		void 	parseServer();
 		void	parseValues();
+		void 	parseLocValues();
 		void 	parseLocation();
 		void 	getRoot();
 		void 	getHost();
 		void 	getServerName();
 		void 	getErrorPage();
+		void 	getLocRoot();
+		void 	getLocAutoindex();
+		void 	getLocFileIsDir();
+		void 	getLocDenyMethod();
+		void 	getLocReqIsDir();
+		void 	initServ();
+		void 	initLoc();
 		void	error(const std::string& msg);
 };
 

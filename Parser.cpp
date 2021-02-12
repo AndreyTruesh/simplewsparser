@@ -148,7 +148,7 @@ void Parser::parse(const std::string& fin)
 {
 	//in   = &i;
 
-/*
+
 	int tmpin;
 	int fd;
 
@@ -173,53 +173,53 @@ void Parser::parse(const std::string& fin)
 		}
 	}
 	dup2(tmpin, 0);
-	close(tmpin); */
+	close(tmpin);
 
-	struct s_loc loc;
-	t_serv val1, val2;
-	val1.host = "127.0.0.1";
-	val1.port = 5000;
-	val1.bodySizeLimit = 1048576;
-	val1.root = getcwd(0, 0);
-	val1.error_pages.insert(std::pair<int, std::string>(404, "/custom_404.html"));
-	val1.error_pages.insert(std::pair<int, std::string>(404, "/custom_400.html"));
-	loc.path = "/";
-	loc.root = val1.root;
-	loc.autoindex = false;
-	loc.getAvailable = true;
-	loc.postAvailable = true;
-	loc.headAvailable = true;
-	loc.putAvailable = false;
-	val1.locs.push_back(loc);
-	
-	loc.path = "/test";
-	loc.root = getcwd(0, 0);
-	loc.root += "/tata";
-	loc.autoindex = false;
-	loc.getAvailable = true;
-	loc.postAvailable = true;
-	loc.headAvailable = true;
-	loc.putAvailable = true;
-	val1.locs.push_back(loc);
-	servers.push_back(val1);
-
-
-	val2.host = "127.0.0.2";
-	val2.port = 9911;
-	val2.bodySizeLimit = 1048576;
-	val2.root = getcwd(0, 0);
-	val2.error_pages.insert(std::pair<int, std::string>(404, "/custom_404.html"));
-	val2.error_pages.insert(std::pair<int, std::string>(404, "/custom_400.html"));
-	loc.path = "/";
-	loc.root = val2.root + "/tata";
-	loc.autoindex = false;
-	loc.getAvailable = false;
-	loc.postAvailable = true;
-	loc.getAvailable = true;
-	loc.headAvailable = true;
-	loc.putAvailable = true;
-	val2.locs.push_back(loc);
-	servers.push_back(val2);
+//	struct s_loc loc;
+//	t_serv val1, val2;
+//	val1.host = "127.0.0.1";
+//	val1.port = 5000;
+//	val1.bodySizeLimit = 1048576;
+//	val1.root = getcwd(0, 0);
+//	val1.error_pages.insert(std::pair<int, std::string>(404, "/custom_404.html"));
+//	val1.error_pages.insert(std::pair<int, std::string>(404, "/custom_400.html"));
+//	loc.path = "/";
+//	loc.root = val1.root;
+//	loc.autoindex = false;
+//	loc.getAvailable = true;
+//	loc.postAvailable = true;
+//	loc.headAvailable = true;
+//	loc.putAvailable = false;
+//	val1.locs.push_back(loc);
+//
+//	loc.path = "/test";
+//	loc.root = getcwd(0, 0);
+//	loc.root += "/tata";
+//	loc.autoindex = false;
+//	loc.getAvailable = true;
+//	loc.postAvailable = true;
+//	loc.headAvailable = true;
+//	loc.putAvailable = true;
+//	val1.locs.push_back(loc);
+//	servers.push_back(val1);
+//
+//
+//	val2.host = "127.0.0.2";
+//	val2.port = 9911;
+//	val2.bodySizeLimit = 1048576;
+//	val2.root = getcwd(0, 0);
+//	val2.error_pages.insert(std::pair<int, std::string>(404, "/custom_404.html"));
+//	val2.error_pages.insert(std::pair<int, std::string>(404, "/custom_400.html"));
+//	loc.path = "/";
+//	loc.root = val2.root + "/tata";
+//	loc.autoindex = false;
+//	loc.getAvailable = false;
+//	loc.postAvailable = true;
+//	loc.getAvailable = true;
+//	loc.headAvailable = true;
+//	loc.putAvailable = true;
+//	val2.locs.push_back(loc);
+//	servers.push_back(val2);
 }
 
 
@@ -231,7 +231,7 @@ void Parser::getRoot()
 		t = getNextToken(value);
 	if (t != IDENTIFIER)
 		error("Er_2");
-	root = value;
+	serv.root = value;
 	t = getNextToken(value);
 	if (t != SEMICOLON)
 		error("Er_3");
@@ -247,7 +247,7 @@ void Parser::getHost()
 		t = getNextToken(value);
 	if (t != IDENTIFIER)
 		error("Er_2");
-	host = value;
+	serv.host = value;
 	t = getNextToken(value);
 	if (t != SEMICOLON)
 		error("Er_3");
@@ -262,7 +262,7 @@ void Parser::getServerName()
 		t = getNextToken(value);
 	if (t != IDENTIFIER)
 		error("Er_2");
-	serverName = value;
+	serv.serverName = value;
 	t = getNextToken(value);
 	if (t != SEMICOLON)
 		error("Er_3");
@@ -303,6 +303,7 @@ void Parser::parseValues()
 
 void Parser::parseServer()
 {
+	initServ();
 	std::string value;
 	Token t = getNextToken(value);
 	if (t != IDENTIFIER || value != "server")
@@ -321,12 +322,114 @@ void Parser::parseServer()
 		error("er_05");
 	}
 	else
+	{
+		servers.push_back(serv);
 		getNextToken(value);
+	}
+}
+void Parser::getLocRoot()
+{
+	std::string value;
+	Token t = getNextToken(value);
+	while (t == WHITESPACE)
+		t = getNextToken(value);
+	if (t != IDENTIFIER)
+		error("Er_9");
+	loc.root = value;
+	t = getNextToken(value);
+	if (t != SEMICOLON)
+		error("Er_3");
+}
+
+void Parser::getLocAutoindex()
+{
+	std::string value;
+	Token t = getNextToken(value);
+	while (t == WHITESPACE)
+		t = getNextToken(value);
+	if (t != IDENTIFIER)
+		error("Er_9");
+	if (value == "off")
+		loc.autoindex = false;
+	else if (value == "on")
+		loc.autoindex = true;
+	else
+		error("autoindex is off/on not anything else");
+	t = getNextToken(value);
+	if (t != SEMICOLON)
+		error("Er_3");
+}
+
+void Parser::getLocFileIsDir()
+{
+
+}
+
+void Parser::getLocDenyMethod()
+{
+
+}
+
+void Parser::getLocReqIsDir()
+{
+
+}
+
+
+void Parser::parseLocValues()
+{
+	std::string value;
+	Token t = getNextToken(value);
+
+	if (t == NEWLINE)
+		return ;
+	if (t == WHITESPACE)
+		return ;
+	if (t != IDENTIFIER)
+		error("No identifier!");
+	if (value == "root")
+		getLocRoot();
+	else if (value == "autoindex")
+		getLocAutoindex();
+	else if (value == "deny")
+		getLocDenyMethod();
+	else if (value == "reqisdir")
+		getLocFileIsDir(); // error?
+
+
 }
 
 void Parser::parseLocation()
 {
+	std::string value;
+	Token t = getNextToken(value);
+	initLoc();
 
+	if (t != WHITESPACE)
+		error("Expected space after location");
+	while (t == WHITESPACE)
+		t = getNextToken(value);
+	loc.path = value;
+	if (nextToken != WHITESPACE)
+		error("Expected space after path in location");
+	t = getNextToken(value);
+	while (t == WHITESPACE) // newlines?
+		t = getNextToken(value);
+	if (t != OPEN_BRACE)
+		error("Expected { after location");
+	while (nextToken == IDENTIFIER || nextToken == NEWLINE || nextToken == WHITESPACE)
+	{
+		parseLocValues();
+	}
+	if (nextToken != CLOSE_BRACE)
+	{
+		error("er_08!!");
+	}
+	else
+	{
+		serv.locs.push_back(loc);
+		getNextToken(value);
+	}
 }
 
 void Parser::error(const std::string &msg)
@@ -351,5 +454,29 @@ Parser::Token Parser::lexComment(std::string &value)
 		c = in->get();
 	}
 }
+
+void Parser::initServ()
+{
+	serv.bodySizeLimit = 1048576;
+	serv.error_pages.clear();
+	serv.serverName.clear();
+	serv.host.clear();
+	serv.locs.clear();
+	serv.root.clear();
+}
+
+void Parser::initLoc()
+{
+	loc.autoindex = false;
+	loc.root.clear();
+	loc.fileRequestIsDir.clear();
+	loc.getAvailable = true;
+	loc.headAvailable = true;
+	loc.postAvailable = true;
+	loc.putAvailable = true;
+	loc.path.clear();
+}
+
+
 
 
