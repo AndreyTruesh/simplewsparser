@@ -231,7 +231,7 @@ void Parser::getRoot()
 		t = getNextToken(value);
 	if (t != IDENTIFIER)
 		error("Er_2");
-	serv.root = value;
+	root = value;
 	t = getNextToken(value);
 	if (t != SEMICOLON)
 		error("Er_3!");
@@ -247,7 +247,7 @@ void Parser::getHost()
 		t = getNextToken(value);
 	if (t != IDENTIFIER)
 		error("Er_2");
-	serv.host = value;
+	splitHost(value);
 	t = getNextToken(value);
 	if (t != SEMICOLON)
 		error("Er_3!!");
@@ -371,7 +371,6 @@ void Parser::parseServer()
 	else
 	{
 		fillRootLoc(); // Fill location roots if empty
-		splitHost();
 		servers.push_back(serv);
 		getNextToken(value);
 	}
@@ -534,7 +533,6 @@ void Parser::initServ()
 	serv.serverName.clear();
 	serv.host.clear();
 	serv.locs.clear();
-	serv.root.clear();
 }
 
 void Parser::initLoc()
@@ -564,18 +562,18 @@ void Parser::fillRootLoc()
 	for (int i = 0; i < serv.locs.size(); i++)
 	{
 		if (serv.locs[i].root.empty())
-			serv.locs[i].root = serv.root; // TODO: refactor root; error management: root is empty
+			serv.locs[i].root = root; // TODO: error management: root is empty
 	}
 }
 
-void Parser::splitHost()
+void Parser::splitHost(const std::string &val)
 {
 	size_t pos;
-	std::string _host; // ref
-	std::string _port; // TODO: ref
-	pos = serv.host.find(':');
-	_host = serv.host.substr(0, pos); // TODO: error management
-	_port = serv.host.substr(pos + 1, serv.host.size());
-	serv.host = _host;
-	serv.port = std::atoi(_port.c_str());
+	std::string host;
+	std::string port;
+	pos = val.find(':');
+	host = val.substr(0, pos); // TODO: error management
+	port = val.substr(pos + 1, val.size());
+	serv.host = host;
+	serv.port = std::atoi(port.c_str());
 }

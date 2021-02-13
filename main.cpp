@@ -20,12 +20,12 @@ int main()
 	std::ifstream fin(fin_name.c_str());
 	Parser parser;
 	parser.parse(fin_name);
-	std::cout << parser.servers[0].root << std::endl;
 	std::cout << parser.servers[0].locs[1].path << std::endl;
 	std::cout << parser.servers[0].locs[1].root << std::endl;
 	std::cout << parser.servers[0].error_pages.find(404)->second << std::endl;
 	std::cout << parser.servers[0].bodySizeLimit << std::endl;
 	std::cout << parser.servers[0].host << std::endl;
-	std::cout << parser.servers[0].port;
+	std::cout << parser.servers[0].port << std::endl;
+	std::cout << parser.servers[0].locs[0].autoindex << std::endl;
 	return 0;
 }
