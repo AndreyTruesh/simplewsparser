@@ -37,6 +37,7 @@ struct s_loc
 	std::string path; // rename to locPath?
 	std::string root;
 	std::string fileRequestIsDir;
+	std::map<std::string, std::string> cgi;
 	bool autoindex;
 	bool getAvailable;
 	bool postAvailable;
@@ -95,6 +96,7 @@ class Parser
 		void 	getLocAutoindex();
 		void 	getLocFileIsDir();
 		void 	getLocDenyMethod();
+		void 	getLocCGI();
 		void 	initServ();
 		void 	initLoc();
 

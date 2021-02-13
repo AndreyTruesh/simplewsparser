@@ -270,6 +270,27 @@ void Parser::getServerName()
 	std::cout << "servername done!\n";
 }
 
+void Parser::getLocCGI()
+{
+	std::string value;
+	Token t = getNextToken(value);
+	std::vector<std::string> vecValues;
+	while (t != SEMICOLON)
+	{
+		t = getNextToken(value);
+		if (t == IDENTIFIER)
+			vecValues.push_back(value);
+		else if (t == WHITESPACE || t == SEMICOLON)
+			continue ;
+		else
+			error("Location: cgi: invalid token");
+	} // TODO: error management
+	for (int i = 0; i < vecValues.size() - 1; i++)
+		loc.cgi.insert(std::pair<std::string, std::string>(vecValues[i], vecValues[vecValues.size() - 1]));
+}
+
+// TODO: Refactor code; Make a fucntion to get value / vector of values
+
 void Parser::getErrorPage()
 {
 	std::string value;
@@ -457,6 +478,8 @@ void Parser::parseLocValues()
 		getLocDenyMethod();
 	else if (value == "reqisdir")
 		getLocFileIsDir(); // error?
+	else if (value == "cgi")
+		getLocCGI();
 
 
 }
