@@ -273,30 +273,21 @@ void Parser::getServerName()
 void Parser::getErrorPage()
 {
 	std::string value;
-	std::string errorFile;
 	Token t = getNextToken(value);
-	std::vector<int> v;
-	while (t != SEMICOLON) {
+	std::vector<std::string> vecValues;
+	while (t != SEMICOLON)
+	{
 		t = getNextToken(value);
 		if (t == IDENTIFIER)
-		{
-			if (nextToken == SEMICOLON)
-			{
-				errorFile = value;
-				continue ;
-			}
-			int r = validateErrorStr(value);
-			if (r != 1) // TODO: error management!
-				error("Bad error");
-			v.push_back(std::atoi(value.c_str()));
-			std::cout << "hohohaha1" << std::endl;
-		}
+			vecValues.push_back(value);
+		else if (t == WHITESPACE || t == SEMICOLON)
+			continue ;
+		else
+			error("error_page: invalid token");
 	}
-	for (int i = 0; i < v.size(); i++)
-	{
-		serv.error_pages.insert(std::pair<int, std::string>(v[i], errorFile));
-	}
-	//std::vector<int>::iterator
+	validateErrorStr(vecValues); // if error program will exit in func
+	for (int i = 0; i < vecValues.size() - 1; i++)
+		serv.error_pages.insert(std::pair<int, std::string>(std::atoi(vecValues[i].c_str()), vecValues[vecValues.size() - 1]));
 }
 
 void Parser::getPageSize()
@@ -547,14 +538,16 @@ void Parser::initLoc()
 	loc.path.clear();
 }
 
-int Parser::validateErrorStr(const std::string &str)
+void Parser::validateErrorStr(const std::vector<std::string> &v)
 {
-	if (str.length() != 3)
-		return (-1);
-	for (int i = 0; i < str.length(); i++)
-		if (str[i] < '0' || str[i] > '9')
-			return (-2);
-	return (1);
+	for (int i = 0; i < v.size() - 1; i++)
+	{
+		if (v[i].length() != 3)
+			error("Error value in error_page not contains 3 symbols");
+		for (int j = 0; j < v[i].length(); j++)
+			if (v[i][j] < '0' || v[i][j] > '9')
+				error("Error value in error_page contains bad characters");
+	}
 }
 
 void Parser::fillRootLoc()

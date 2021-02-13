@@ -100,7 +100,7 @@ class Parser
 
 		void	error(const std::string& msg);
 
-		int 	validateErrorStr(const std::string &str);
+		void 	validateErrorStr(const std::vector<std::string> &v);
 		void 	fillRootLoc();
 		void 	splitHost(const std::string &val);
 };
