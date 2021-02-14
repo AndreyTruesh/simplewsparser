@@ -161,7 +161,7 @@ void Parser::parse(const std::string& fin)
 	getNextToken(value);
 	while (nextToken != FILE_END)
 	{
-		if (nextToken == NEWLINE) // WHITESPACES?
+		if (nextToken == NEWLINE || nextToken == WHITESPACE) // WHITESPACES?
 		{
 			// skip empty lines
 			getNextToken(value);
@@ -400,7 +400,7 @@ void Parser::parseLocation()
 	if (nextToken != WHITESPACE)
 		error("Expected space after path in location");
 	t = getNextToken(value);
-	while (t == WHITESPACE) // newlines?
+	while (t == WHITESPACE || t == NEWLINE) // todo: test
 		t = getNextToken(value);
 	if (t != OPEN_BRACE)
 		error("Expected { after location");
