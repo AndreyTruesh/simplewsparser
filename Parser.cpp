@@ -60,7 +60,6 @@ Parser::Token Parser::lexToken(std::string &value)
 		case '#':
 			return lexComment(value);
 		case -1:
-			std::cout << "123!\n"; // TODO: ??
 			return FILE_END;
 		default:
 			value.push_back(c);
@@ -147,6 +146,8 @@ void Parser::parse(const std::string& fin)
 
 	tmpin = dup(0);
 	fd = open(fin.c_str(), O_RDONLY);
+	if (fd < 0)
+		error("Can't open file" + fin);
 	dup2(fd, 0);
 	close(fd);
 	in = &std::cin;
@@ -225,7 +226,7 @@ void Parser::getErrorPage()
 {
 	std::vector<std::string> vecValues = getVectorValues("server: error_page ");
 	validateErrorStr(vecValues); // error: program will exit in func
-	for (int i = 0; i < vecValues.size() - 1; i++)
+	for (unsigned int i = 0; i < vecValues.size() - 1; i++)
 		serv.error_pages.insert(std::pair<int, std::string>(std::atoi(vecValues[i].c_str()), vecValues[vecValues.size() - 1]));
 }
 
@@ -235,10 +236,15 @@ void Parser::getPageSize()
 	int num;
 
 	num = std::atoi(value.c_str());
+	for (unsigned int i = 0; i < value.size() - 1; i++)
+		if (value[i] < '0' || value[i] > '9')
+			error("server: page_size: bad number");
 	if (value[value.size() - 1] == 'M')
 		num *= 1048576;
-	else if (value[value.size() - 1] == 'K') // or k
-		num *= 1024; // TODO: validate value
+	else if (value[value.size() - 1] == 'K')
+		num *= 1024;
+	else if (value[value.size() - 1] < '0' || value[value.size() - 1] > '9')
+		error("server: page_size: bad number. Expected 'M' or 'K' or digit");
 	serv.bodySizeLimit = num;
 }
 
@@ -290,6 +296,10 @@ void Parser::parseServer()
 	{
 		parseValues();
 	}
+	if (nextToken == OPEN_BRACE)
+	{
+		error("second { in server section");
+	}
 	if (nextToken != CLOSE_BRACE)
 	{
 		error("expected close brace for server section");
@@ -305,7 +315,7 @@ void Parser::parseServer()
 void Parser::getLocCGI()
 {
 	std::vector<std::string> vecValues = getVectorValues("location: cgi: "); // TODO: error management .php .py
-	for (int i = 0; i < vecValues.size() - 1; i++)
+	for (unsigned int i = 0; i < vecValues.size() - 1; i++)
 		loc.cgi.insert(std::pair<std::string, std::string>(vecValues[i], vecValues[vecValues.size() - 1]));
 }
 
@@ -327,7 +337,7 @@ void Parser::getLocAutoindex()
 
 void Parser::getLocFileIsDir()
 {
-	loc.fileRequestIsDir = getValue("location: file is dir: "); // TODO: clarify syntax
+	loc.fileRequestIsDir = getValue("location: reqisdir: ");
 }
 
 void Parser::getLocDenyMethod()
@@ -449,11 +459,11 @@ void Parser::initLoc()
 
 void Parser::validateErrorStr(const std::vector<std::string> &v)
 {
-	for (int i = 0; i < v.size() - 1; i++)
+	for (unsigned int i = 0; i < v.size() - 1; i++)
 	{
 		if (v[i].length() != 3)
 			error("Error value in error_page not contains 3 symbols");
-		for (int j = 0; j < v[i].length(); j++)
+		for (unsigned int j = 0; j < v[i].length(); j++)
 			if (v[i][j] < '0' || v[i][j] > '9')
 				error("Error value in error_page contains bad characters");
 	}
@@ -461,10 +471,14 @@ void Parser::validateErrorStr(const std::vector<std::string> &v)
 
 void Parser::fillRootLoc()
 {
-	for (int i = 0; i < serv.locs.size(); i++)
+	for (unsigned int i = 0; i < serv.locs.size(); i++)
 	{
 		if (serv.locs[i].root.empty())
-			serv.locs[i].root = root; // TODO: error management: root is empty
+		{
+			if (root.empty())
+				error("location has no root. Can't resolve");
+			serv.locs[i].root = root;
+		}
 	}
 }
 
