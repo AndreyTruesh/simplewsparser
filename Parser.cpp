@@ -162,7 +162,7 @@ void Parser::parse(const std::string& fin)
 	getNextToken(value);
 	while (nextToken != FILE_END)
 	{
-		if (nextToken == NEWLINE)
+		if (nextToken == NEWLINE) // WHITESPACES?
 		{
 			// skip empty lines
 			getNextToken(value);
@@ -357,6 +357,8 @@ void Parser::parseValues()
 			getServerName();
 		else if (value == "page_size")
 			getPageSize();
+		else
+			error ("Server: invalid token");
 	}
 }
 
@@ -366,8 +368,10 @@ void Parser::parseServer()
 	std::string value;
 	Token t = getNextToken(value);
 	if (t != IDENTIFIER || value != "server")
-		error("Er_00!");
+		error("expected server");
 	t = getNextToken(value);
+	while (t == WHITESPACE || t == NEWLINE)
+		t = getNextToken(value);
 	if (t != OPEN_BRACE)
 	{
 		error("Expected {");
@@ -378,7 +382,7 @@ void Parser::parseServer()
 	}
 	if (nextToken != CLOSE_BRACE)
 	{
-		error("er_05");
+		error("expected close brace for server section");
 	}
 	else
 	{
@@ -480,6 +484,8 @@ void Parser::parseLocValues()
 		getLocFileIsDir(); // error?
 	else if (value == "cgi")
 		getLocCGI();
+	else
+		error("Location: invalid token");
 
 
 }
