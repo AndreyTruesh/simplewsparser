@@ -1,7 +1,3 @@
-//
-// Created by abibi on 02.02.2021.
-//
-
 #include "Parser.hpp"
 #include <cstdlib>
 Parser::Parser()
@@ -146,9 +142,6 @@ Parser::Token Parser::lexIdentifier(std::string &value)
 
 void Parser::parse(const std::string& fin)
 {
-	//in   = &i;
-
-
 	int tmpin;
 	int fd;
 
@@ -157,7 +150,6 @@ void Parser::parse(const std::string& fin)
 	dup2(fd, 0);
 	close(fd);
 	in = &std::cin;
-	Token t;
 	std::string value;
 	getNextToken(value);
 	while (nextToken != FILE_END)
@@ -174,161 +166,79 @@ void Parser::parse(const std::string& fin)
 	}
 	dup2(tmpin, 0);
 	close(tmpin);
+}
 
-//	struct s_loc loc;
-//	t_serv val1, val2;
-//	val1.host = "127.0.0.1";
-//	val1.port = 5000;
-//	val1.bodySizeLimit = 1048576;
-//	val1.root = getcwd(0, 0);
-//	val1.error_pages.insert(std::pair<int, std::string>(404, "/custom_404.html"));
-//	val1.error_pages.insert(std::pair<int, std::string>(404, "/custom_400.html"));
-//	loc.path = "/";
-//	loc.root = val1.root;
-//	loc.autoindex = false;
-//	loc.getAvailable = true;
-//	loc.postAvailable = true;
-//	loc.headAvailable = true;
-//	loc.putAvailable = false;
-//	val1.locs.push_back(loc);
-//
-//	loc.path = "/test";
-//	loc.root = getcwd(0, 0);
-//	loc.root += "/tata";
-//	loc.autoindex = false;
-//	loc.getAvailable = true;
-//	loc.postAvailable = true;
-//	loc.headAvailable = true;
-//	loc.putAvailable = true;
-//	val1.locs.push_back(loc);
-//	servers.push_back(val1);
-//
-//
-//	val2.host = "127.0.0.2";
-//	val2.port = 9911;
-//	val2.bodySizeLimit = 1048576;
-//	val2.root = getcwd(0, 0);
-//	val2.error_pages.insert(std::pair<int, std::string>(404, "/custom_404.html"));
-//	val2.error_pages.insert(std::pair<int, std::string>(404, "/custom_400.html"));
-//	loc.path = "/";
-//	loc.root = val2.root + "/tata";
-//	loc.autoindex = false;
-//	loc.getAvailable = false;
-//	loc.postAvailable = true;
-//	loc.getAvailable = true;
-//	loc.headAvailable = true;
-//	loc.putAvailable = true;
-//	val2.locs.push_back(loc);
-//	servers.push_back(val2);
+std::string Parser::getValue(const std::string &section)
+{
+	std::string value;
+	std::string ret;
+	Token t = getNextToken(value);
+	while (t == WHITESPACE || t == NEWLINE)
+		t = getNextToken(value);
+	if (t != IDENTIFIER)
+		error(section + "expected value");
+	ret = value;
+	t = getNextToken(value);
+	while (t == WHITESPACE || t == NEWLINE)
+		t = getNextToken(value);
+	if (t != SEMICOLON)
+		error(section + "expected ;");
+	return ret;
+}
+
+std::vector<std::string> Parser::getVectorValues(const std::string &section)
+{
+	std::string value;
+	Token t = getNextToken(value);
+	std::vector<std::string> vecValues;
+	while (t != SEMICOLON)
+	{
+		t = getNextToken(value);
+		if (t == IDENTIFIER)
+			vecValues.push_back(value);
+		else if (t == WHITESPACE || t == SEMICOLON)
+			continue ;
+		else
+			error(section + "invalid token");
+	}
+	return vecValues;
 }
 
 
 void Parser::getRoot()
 {
-	std::string value;
-	Token t = getNextToken(value);
-	while (t == WHITESPACE)
-		t = getNextToken(value);
-	if (t != IDENTIFIER)
-		error("Er_2");
-	root = value;
-	t = getNextToken(value);
-	if (t != SEMICOLON)
-		error("Er_3!");
-	std::cout << "root done!" << root << "\n";
-
+	root = getValue("server: root: ");
 }
 
 void Parser::getHost()
 {
-	std::string value;
-	Token t = getNextToken(value);
-	while (t == WHITESPACE)
-		t = getNextToken(value);
-	if (t != IDENTIFIER)
-		error("Er_2");
+	std::string value = getValue("server: listen: ");
 	splitHost(value);
-	t = getNextToken(value);
-	if (t != SEMICOLON)
-		error("Er_3!!");
-	std::cout << "host done!\n";
 }
 
 void Parser::getServerName()
 {
-	std::string value;
-	Token t = getNextToken(value);
-	while (t == WHITESPACE)
-		t = getNextToken(value);
-	if (t != IDENTIFIER)
-		error("Er_2");
-	serv.serverName = value;
-	t = getNextToken(value);
-	if (t != SEMICOLON)
-		error("Er_3!!!");
-
-	std::cout << "servername done!\n";
+	serv.serverName = getValue("server: server_name: ");
 }
-
-void Parser::getLocCGI()
-{
-	std::string value;
-	Token t = getNextToken(value);
-	std::vector<std::string> vecValues;
-	while (t != SEMICOLON)
-	{
-		t = getNextToken(value);
-		if (t == IDENTIFIER)
-			vecValues.push_back(value);
-		else if (t == WHITESPACE || t == SEMICOLON)
-			continue ;
-		else
-			error("Location: cgi: invalid token");
-	} // TODO: error management
-	for (int i = 0; i < vecValues.size() - 1; i++)
-		loc.cgi.insert(std::pair<std::string, std::string>(vecValues[i], vecValues[vecValues.size() - 1]));
-}
-
-// TODO: Refactor code; Make a fucntion to get value / vector of values
 
 void Parser::getErrorPage()
 {
-	std::string value;
-	Token t = getNextToken(value);
-	std::vector<std::string> vecValues;
-	while (t != SEMICOLON)
-	{
-		t = getNextToken(value);
-		if (t == IDENTIFIER)
-			vecValues.push_back(value);
-		else if (t == WHITESPACE || t == SEMICOLON)
-			continue ;
-		else
-			error("error_page: invalid token");
-	}
-	validateErrorStr(vecValues); // if error program will exit in func
+	std::vector<std::string> vecValues = getVectorValues("server: error_page ");
+	validateErrorStr(vecValues); // error: program will exit in func
 	for (int i = 0; i < vecValues.size() - 1; i++)
 		serv.error_pages.insert(std::pair<int, std::string>(std::atoi(vecValues[i].c_str()), vecValues[vecValues.size() - 1]));
 }
 
 void Parser::getPageSize()
 {
-	std::string value;
-	Token t = getNextToken(value);
+	std::string value = getValue("server: page_size: ");
 	int num;
 
-	while (t == WHITESPACE)
-		t = getNextToken(value);
-	if (t != IDENTIFIER)
-		error("Er_2");
 	num = std::atoi(value.c_str());
 	if (value[value.size() - 1] == 'M')
 		num *= 1048576;
 	else if (value[value.size() - 1] == 'K') // or k
 		num *= 1024; // TODO: validate value
-	t = getNextToken(value);
-	if (t != SEMICOLON)
-		error("Er_3!!!");
 	serv.bodySizeLimit = num;
 }
 
@@ -358,7 +268,7 @@ void Parser::parseValues()
 		else if (value == "page_size")
 			getPageSize();
 		else
-			error ("Server: invalid token");
+			error ("Server: invalid token " + value);
 	}
 }
 
@@ -391,63 +301,38 @@ void Parser::parseServer()
 		getNextToken(value);
 	}
 }
+
+void Parser::getLocCGI()
+{
+	std::vector<std::string> vecValues = getVectorValues("location: cgi: "); // TODO: error management .php .py
+	for (int i = 0; i < vecValues.size() - 1; i++)
+		loc.cgi.insert(std::pair<std::string, std::string>(vecValues[i], vecValues[vecValues.size() - 1]));
+}
+
 void Parser::getLocRoot()
 {
-	std::string value;
-	Token t = getNextToken(value);
-	while (t == WHITESPACE)
-		t = getNextToken(value);
-	if (t != IDENTIFIER)
-		error("Er_9");
-	loc.root = value;
-	t = getNextToken(value);
-	if (t != SEMICOLON)
-		error("No semicolon after root in Location section");
+	loc.root = getValue("location: root: ");
 }
 
 void Parser::getLocAutoindex()
 {
-	std::string value;
-	Token t = getNextToken(value);
-	while (t == WHITESPACE)
-		t = getNextToken(value);
-	if (t != IDENTIFIER)
-		error("Er_9");
+	std::string value = getValue("location: autoindex: ");
 	if (value == "off")
 		loc.autoindex = false;
 	else if (value == "on")
 		loc.autoindex = true;
 	else
 		error("autoindex is off/on; not anything else");
-	t = getNextToken(value);
-	if (t != SEMICOLON)
-		error("Er_3!!!!!");
 }
 
 void Parser::getLocFileIsDir()
 {
-	std::string value;
-	Token t = getNextToken(value);
-	while (t == WHITESPACE)
-		t = getNextToken(value);
-	if (t != IDENTIFIER)
-		error("Er_2");
-	loc.fileRequestIsDir = value;
-	t = getNextToken(value);
-	if (t != SEMICOLON)
-		error("Er_3!!!");
-
-	std::cout << "file is Dir done!\n";
+	loc.fileRequestIsDir = getValue("location: file is dir: "); // TODO: clarify syntax
 }
 
 void Parser::getLocDenyMethod()
 {
-	std::string value;
-	Token t = getNextToken(value);
-	while (t == WHITESPACE)
-		t = getNextToken(value);
-	if (t != IDENTIFIER)
-		error("Er_9");
+	std::string value = getValue("location: deny: ");
 	if (value == "GET")
 		loc.getAvailable = false;
 	else if (value == "POST")
@@ -458,9 +343,6 @@ void Parser::getLocDenyMethod()
 		loc.putAvailable = false;
 	else
 		error("expected deny POST | HEAD | PUT | GET");
-	t = getNextToken(value);
-	if (t != SEMICOLON)
-		error("expected semicolon in Location: deny");
 }
 
 void Parser::parseLocValues()
@@ -486,8 +368,6 @@ void Parser::parseLocValues()
 		getLocCGI();
 	else
 		error("Location: invalid token");
-
-
 }
 
 void Parser::parseLocation()

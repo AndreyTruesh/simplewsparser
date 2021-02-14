@@ -105,6 +105,8 @@ class Parser
 		void 	validateErrorStr(const std::vector<std::string> &v);
 		void 	fillRootLoc();
 		void 	splitHost(const std::string &val);
+		std::string getValue(const std::string &section);
+		std::vector<std::string> getVectorValues(const std::string &section);
 };
 
 
