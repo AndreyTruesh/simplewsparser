@@ -10,6 +10,12 @@ Parser::~Parser()
 
 }
 
+
+Parser::Parser(const std::string &file)
+{
+	parse(file);
+}
+
 Parser::Token Parser::getNextToken(std::string &value)
 {
 	Token token = nextToken;
@@ -147,7 +153,7 @@ void Parser::parse(const std::string& fin)
 	tmpin = dup(0);
 	fd = open(fin.c_str(), O_RDONLY);
 	if (fd < 0)
-		error("Can't open file" + fin);
+		error("Can't open file " + fin);
 	dup2(fd, 0);
 	close(fd);
 	in = &std::cin;

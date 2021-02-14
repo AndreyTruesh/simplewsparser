@@ -50,9 +50,9 @@ class Parser
 	public:
 		Parser();
 		~Parser();
+		Parser(const std::string &file);
 		void parse(const std::string& file);
 		std::vector<t_serv> servers;
-
 	private:
 		enum Token
 		{
